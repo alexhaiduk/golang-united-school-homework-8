@@ -1,29 +1,132 @@
 package main
 
 import (
-	"io"
-	//"io/ioutil"
-	"os"
-	//"bytes"
+	"encoding/json"
+	"errors"
 	"flag"
-	//"errors"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 )
 
 type Arguments map[string]string
 
+type jsonuser struct {
+	Id    string
+	Email string
+	Age   int
+}
+
 func parseArgs() Arguments {
-	var args Arguments
-	args["fileName"] = *flag.String("fileName", "users.json", "name of file where you store users, default: \"users.json\"")
+	args := make(Arguments)
+	args["operation"] = *flag.String("operation", "", "It should accept there types of operation: [add|list|findById|remove], default: \"\"") //maybe default: list
 	args["id"] = *flag.String("id", "", "user id, default: \"\"")
-	args["item"] = *flag.String("item", "", "valid json object with the id, email and age fields") //maybe default: {\"id\": \"0\", \"email\": \"email@mail.com\", \"age\": 1}
-	args["operation"] = *flag.String("operation", "list", "It should accept there types of operation: [add|list|findById|remove], default: \"list\"")
+	args["item"] = *flag.String("item", "", "valid json object with the id, email and age fields")                 //maybe default: {\"id\": \"0\", \"email\": \"email@mail.com\", \"age\": 1}
+	args["fileName"] = *flag.String("fileName", "", "name of file where you store users, default: \"users.json\"") //maybe default: users.json
 	flag.Parse()
 	return args
 }
 
+func AddingOperation(jsonstring string, filename string, wrt io.Writer) error {
+	var users []jsonuser
+	var user jsonuser
+	err := json.Unmarshal([]byte(jsonstring), &user)
+	if err != nil {
+		return fmt.Errorf("json format incorrect: %w", err)
+	}
+	content, _ := os.ReadFile(filename)
+	err = json.Unmarshal(content, &users)
+	if err == nil && len(users) != 0 {
+		for _, usr := range users {
+			if user.Id == usr.Id {
+				wrt.Write([]byte("Item with id " + usr.Id + " already exists"))
+				return nil
+			}
+		}
+	}
+	users = append(users, user)
+	content, err = json.Marshal(users)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0755)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	} else {
+		_, err = file.Write(content)
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
+		err = file.Close()
+		if err != nil {
+			return fmt.Errorf("%w", err)
+		}
+	}
+	return nil
+}
+
+func ListOperation(filename string, wrt io.Writer) error {
+	var users []jsonuser
+	file, err := os.OpenFile(filename, os.O_RDONLY, 0755)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	defer file.Close()
+	content, err := ioutil.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	err = json.Unmarshal(content, &users)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	} else {
+		wrt.Write(content)
+		return nil
+	}
+	//return nil
+}
+
+func FindByIdOperation() error {
+	return nil
+}
+
+func RemovingOperation() error {
+	return nil
+}
+
 func Perform(args Arguments, writer io.Writer) error {
-	var err error
-	return err
+	//var err error
+	if args["fileName"] == "" {
+		return errors.New("-fileName flag has to be specified")
+	}
+	if args["operation"] == "" {
+		return errors.New("-operation flag has to be specified")
+	}
+	switch args["operation"] {
+	case "add":
+		if args["item"] == "" {
+			return errors.New("-item flag has to be specified")
+		} else {
+			return AddingOperation(args["item"], args["fileName"], writer)
+		}
+	case "list":
+		return ListOperation(args["fileName"], writer)
+	case "findById":
+		if args["id"] == "" {
+			return errors.New("-id flag has to be specified")
+		} else {
+			return nil
+		}
+	case "remove":
+		if args["id"] == "" {
+			return errors.New("-id flag has to be specified")
+		} else {
+			return nil
+		}
+	default:
+		return errors.New("Operation " + args["operation"] + " not allowed!")
+	}
 }
 
 func main() {
