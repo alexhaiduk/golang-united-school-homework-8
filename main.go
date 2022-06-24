@@ -12,6 +12,13 @@ import (
 
 type Arguments map[string]string
 
+//type Arguments struct {
+//operation string
+//id        string
+//item      string
+//fileName  string
+//}
+
 type jsonuser struct {
 	Id    string
 	Email string
@@ -19,12 +26,21 @@ type jsonuser struct {
 }
 
 func parseArgs() Arguments {
-	args := make(Arguments)
-	args["operation"] = *flag.String("operation", "", "It should accept there types of operation: [add|list|findById|remove], default: \"\"") //maybe default: list
-	args["id"] = *flag.String("id", "", "user id, default: \"\"")
-	args["item"] = *flag.String("item", "", "valid json object with the id, email and age fields")                 //maybe default: {\"id\": \"0\", \"email\": \"email@mail.com\", \"age\": 1}
-	args["fileName"] = *flag.String("fileName", "", "name of file where you store users, default: \"users.json\"") //maybe default: users.json
+	var args = Arguments{"operation": "", "id": "", "item": "", "fileName": ""}
+	var operation, id, item, filename string
+	//args["operation"] = *flag.String("operation", "", "It should accept there types of operation: [add|list|findById|remove], default: \"\"") //maybe default: list
+	flag.StringVar(&operation, "operation", "", "It should accept there types of operation: [add|list|findById|remove].")
+	//args["id"] = *flag.String("id", "", "user id, default: \"\"")
+	flag.StringVar(&id, "id", "", "user id, default: \"\"")
+	//args["item"] = *flag.String("item", "", "valid json object with the id, email and age fields") //maybe default: {\"id\": \"0\", \"email\": \"email@mail.com\", \"age\": 1}
+	flag.StringVar(&item, "item", "", "valid json object with the id, email and age fields")
+	//args["fileName"] = *flag.String("fileName", "", "name of file where you store users, default: \"users.json\"") //maybe default: users.json
+	flag.StringVar(&filename, "fileName", "", "name of file where you store users, default: \"\"")
 	flag.Parse()
+	args["operation"] = operation
+	args["id"] = id
+	args["item"] = item
+	args["fiName"] = filename
 	return args
 }
 
