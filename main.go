@@ -110,7 +110,7 @@ func FindByIdOperation(filename string, id string, wrt io.Writer) error {
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
-	defer file.Close()
+	//defer file.Close()
 	content, err := ioutil.ReadAll(file)
 	if err != nil {
 		return fmt.Errorf("%w", err)
