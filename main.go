@@ -40,7 +40,7 @@ func parseArgs() Arguments {
 	args["operation"] = operation
 	args["id"] = id
 	args["item"] = item
-	args["fiName"] = filename
+	args["fileName"] = filename
 	return args
 }
 
@@ -103,11 +103,35 @@ func ListOperation(filename string, wrt io.Writer) error {
 	//return nil
 }
 
-func FindByIdOperation() error {
+func FindByIdOperation(filename string, id string, wrt io.Writer) error {
+	var users []jsonuser
+	var temp []byte
+	file, err := os.OpenFile(filename, os.O_RDONLY, 0755)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	defer file.Close()
+	content, err := ioutil.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	err = json.Unmarshal(content, &users)
+	if err == nil && len(users) != 0 {
+		for _, usr := range users {
+			if id == usr.Id {
+				temp, err = json.Marshal(usr)
+				if err != nil {
+					return fmt.Errorf("%w", err)
+				}
+				wrt.Write(temp)
+				return nil
+			}
+		}
+	}
 	return nil
 }
 
-func RemovingOperation() error {
+func RemovingOperation(filename string, id string, wrt io.Writer) error {
 	return nil
 }
 
