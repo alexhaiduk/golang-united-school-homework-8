@@ -20,9 +20,9 @@ type Arguments map[string]string
 //}
 
 type jsonuser struct {
-	Id    string
-	Email string
-	Age   int
+	Id    string `json:"id"`
+	Email string `json:"email"`
+	Age   int    `json:"age"`
 }
 
 func parseArgs() Arguments {
@@ -84,12 +84,12 @@ func AddingOperation(jsonstring string, filename string, wrt io.Writer) error {
 
 func ListOperation(filename string, wrt io.Writer) error {
 	var users []jsonuser
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0755)
-	if err != nil {
-		return fmt.Errorf("%w", err)
-	}
-	defer file.Close()
-	content, err := ioutil.ReadAll(file)
+	//file, err := os.OpenFile(filename, os.O_RDONLY, 0755)
+	//if err != nil {
+	//return fmt.Errorf("%w", err)
+	//}
+	//defer file.Close()
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
@@ -106,7 +106,7 @@ func ListOperation(filename string, wrt io.Writer) error {
 func FindByIdOperation(filename string, id string, wrt io.Writer) error {
 	var users []jsonuser
 	var temp []byte
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0755)
+	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
@@ -117,9 +117,9 @@ func FindByIdOperation(filename string, id string, wrt io.Writer) error {
 	}
 	err = json.Unmarshal(content, &users)
 	if err == nil && len(users) != 0 {
-		for _, usr := range users {
+		for i, usr := range users {
 			if id == usr.Id {
-				temp, err = json.Marshal(usr)
+				temp, err = json.Marshal(users[i])
 				if err != nil {
 					return fmt.Errorf("%w", err)
 				}
@@ -127,6 +127,7 @@ func FindByIdOperation(filename string, id string, wrt io.Writer) error {
 				return nil
 			}
 		}
+		wrt.Write([]byte(""))
 	}
 	return nil
 }
