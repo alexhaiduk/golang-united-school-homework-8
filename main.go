@@ -131,7 +131,7 @@ func FindByIdOperation(filename string, id string, wrt io.Writer) error {
 	return nil
 }
 
-func RemovingOperation(filename string, id string, wrt io.Writer) error {
+func RemovingOperation(filename string, id string) error {
 	var users []jsonuser
 	//var temp []byte
 	file, err := os.OpenFile(filename, os.O_RDONLY, 0755)
@@ -201,13 +201,13 @@ func Perform(args Arguments, writer io.Writer) error {
 		if args["id"] == "" {
 			return errors.New("-id flag has to be specified")
 		} else {
-			return nil
+			return FindByIdOperation(args["filename"], args["id"], writer)
 		}
 	case "remove":
 		if args["id"] == "" {
 			return errors.New("-id flag has to be specified")
 		} else {
-			return nil
+			return RemovingOperation(args["filename"], args["id"])
 		}
 	default:
 		return errors.New("Operation " + args["operation"] + " not allowed!")
