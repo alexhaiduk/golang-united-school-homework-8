@@ -132,6 +132,51 @@ func FindByIdOperation(filename string, id string, wrt io.Writer) error {
 }
 
 func RemovingOperation(filename string, id string, wrt io.Writer) error {
+	var users []jsonuser
+	//var temp []byte
+	file, err := os.OpenFile(filename, os.O_RDONLY, 0755)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	defer file.Close()
+	content, err := ioutil.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("%w", err)
+	}
+	err = json.Unmarshal(content, &users)
+	if err == nil && len(users) != 0 {
+		found := false
+		for i, usr := range users {
+			if id == usr.Id {
+				found = true
+				//temp, err = json.Marshal(usr)
+				//if err != nil {
+				//return fmt.Errorf("%w", err)
+				//}
+				//wrt.Write(temp)
+				users = append(users[:i], users[i+1:]...)
+				content, err = json.Marshal(users)
+				if err != nil {
+					return fmt.Errorf("%w", err)
+				}
+				file, err = os.OpenFile(filename, os.O_WRONLY, 0755)
+				if err != nil {
+					return fmt.Errorf("%w", err)
+				}
+				_, err = file.Write(content)
+				if err != nil {
+					return fmt.Errorf("%w", err)
+				}
+				err = file.Close()
+				if err != nil {
+					return fmt.Errorf("%w", err)
+				}
+			}
+		}
+		if !found {
+			return fmt.Errorf("Item with id " + id + " not found")
+		}
+	}
 	return nil
 }
 
