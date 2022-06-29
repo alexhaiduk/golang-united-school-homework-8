@@ -106,12 +106,12 @@ func ListOperation(filename string, wrt io.Writer) error {
 func FindByIdOperation(filename string, id string, wrt io.Writer) error {
 	var users []jsonuser
 	var temp []byte
-	file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
-	if err != nil {
-		return fmt.Errorf("%w", err)
-	}
+	//file, err := os.OpenFile(filename, os.O_RDWR|os.O_CREATE, 0644)
+	//if err != nil {
+	//return fmt.Errorf("%w", err)
+	//}
 	//defer file.Close()
-	content, err := ioutil.ReadAll(file)
+	content, err := os.ReadFile(filename)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
@@ -135,7 +135,7 @@ func FindByIdOperation(filename string, id string, wrt io.Writer) error {
 func RemovingOperation(filename string, id string, wrt io.Writer) error {
 	var users []jsonuser
 	//var temp []byte
-	file, err := os.OpenFile(filename, os.O_RDONLY, 0755)
+	file, err := os.OpenFile(filename, os.O_RDWR, 0644)
 	if err != nil {
 		return fmt.Errorf("%w", err)
 	}
@@ -160,7 +160,9 @@ func RemovingOperation(filename string, id string, wrt io.Writer) error {
 				if err != nil {
 					return fmt.Errorf("%w", err)
 				}
-				file, err = os.OpenFile(filename, os.O_WRONLY, 0755)
+				//file, err = os.OpenFile(filename, os.O_WRONLY, 0644)
+				file.Truncate(0)
+				file.Seek(0, 0)
 				if err != nil {
 					return fmt.Errorf("%w", err)
 				}
@@ -168,10 +170,10 @@ func RemovingOperation(filename string, id string, wrt io.Writer) error {
 				if err != nil {
 					return fmt.Errorf("%w", err)
 				}
-				err = file.Close()
-				if err != nil {
-					return fmt.Errorf("%w", err)
-				}
+				//err = file.Close()
+				//if err != nil {
+				//return fmt.Errorf("%w", err)
+				//}
 			}
 		}
 		if !found {
@@ -203,13 +205,13 @@ func Perform(args Arguments, writer io.Writer) error {
 		if args["id"] == "" {
 			return errors.New("-id flag has to be specified")
 		} else {
-			return FindByIdOperation(args["filename"], args["id"], writer)
+			return FindByIdOperation(args["fileName"], args["id"], writer)
 		}
 	case "remove":
 		if args["id"] == "" {
 			return errors.New("-id flag has to be specified")
 		} else {
-			return RemovingOperation(args["filename"], args["id"], writer)
+			return RemovingOperation(args["fileName"], args["id"], writer)
 		}
 	default:
 		return errors.New("Operation " + args["operation"] + " not allowed!")
